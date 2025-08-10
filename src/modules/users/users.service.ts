@@ -7,11 +7,11 @@ export class UsersService {
   private users: User[] = [];
 
   async findByEmail(email: string): Promise<User | undefined> {
-    return this.users.find(user => user.email === email);
+    return this.users.find((user) => user.email === email);
   }
 
   async findById(id: number): Promise<User | undefined> {
-    return this.users.find(user => user.id === id);
+    return this.users.find((user) => user.id === id);
   }
 
   async create(userData: Partial<User>): Promise<User> {
@@ -28,7 +28,10 @@ export class UsersService {
     return user;
   }
 
-  async setCurrentRefreshToken(userId: number, refreshToken: string): Promise<void> {
+  async setCurrentRefreshToken(
+    userId: number,
+    refreshToken: string,
+  ): Promise<void> {
     const user = await this.findById(userId);
     if (user) {
       user.currentHashedRefreshToken = await bcrypt.hash(refreshToken, 10);
@@ -42,7 +45,11 @@ export class UsersService {
     }
   }
 
-  async setPasswordResetToken(userId: number, token: string, expiry: number): Promise<void> {
+  async setPasswordResetToken(
+    userId: number,
+    token: string,
+    expiry: number,
+  ): Promise<void> {
     const user = await this.findById(userId);
     if (user) {
       user.passwordResetToken = token;
@@ -56,7 +63,7 @@ export class UsersService {
         user.passwordResetToken &&
         user.passwordResetExpires &&
         user.passwordResetExpires > Date.now() &&
-        user.passwordResetToken === token
+        user.passwordResetToken === token,
     );
   }
 

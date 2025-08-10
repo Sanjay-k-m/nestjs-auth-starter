@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Injectable,
   ConflictException,
@@ -11,31 +13,59 @@ import * as crypto from 'crypto';
 import { UsersService } from '../../users/users.service';
 import { User } from '../../../interfaces/user.interface';
 import { JwtPayload } from '../../../interfaces/auth.interface';
-
+import { TempUserStoreService } from 'src/common/services/temp-user-store.service';
+import { MailService } from 'src/common/services/mailProvider.service';
 @Injectable()
 export class AuthService {
+  users: any;
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly tempUserStore: TempUserStoreService,
+    private readonly mailService: MailService,
   ) {}
 
-  getHello(): string {
-    return 'Hello World!';
-  }
-
   // Register new user with hashed password
-  async register(email: string, password: string): Promise<void> {
+  async registerRequest(email: string, password: string): Promise<void> {
     const exists = await this.usersService.findByEmail(email);
     if (exists) throw new ConflictException('Email already registered');
 
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+    const hashedOtp = await bcrypt.hash(otp, 10);
 
-    await this.usersService.create({
+    // Save { email, hashedOtp, password: hashed & other details } in temp store (e.g. Redis or separate DB table)
+    this.tempUserStore.save({
       email,
-      password: hashedPassword,
-      roles: ['user'],
-      isEmailVerified: false,
+      password: await bcrypt.hash(password, 12),
+      otp: hashedOtp,
+      otpExpiry: Date.now() + 10 * 60 * 1000, // 10 min expiry
     });
+
+    // Send OTP to user via email/sms
+    await this.mailService.sendMail(email, 'OTP for registration', otp);
+  }
+
+  // auth.service.ts
+  async verifyOtpAndRegister(email: string, otp: string): Promise<void> {
+    const tempUser = this.tempUserStore.find(email);
+    if (!tempUser) throw new BadRequestException('No pending registration');
+
+    if (tempUser.otpExpiry < Date.now())
+      throw new BadRequestException('OTP expired');
+
+    const isValidOtp = await bcrypt.compare(otp, tempUser.otp);
+    if (!isValidOtp) throw new BadRequestException('Invalid OTP');
+
+    // Create the user in permanent DB
+    await this.usersService.create({
+      email: tempUser.email,
+      password: tempUser.password,
+      roles: ['user'],
+      isEmailVerified: true,
+    });
+
+    // Remove temp user
+    this.tempUserStore.remove(email);
   }
 
   // Validate user credentials and return user info without password
@@ -126,11 +156,11 @@ export class AuthService {
   // Request password reset: generate token, save hashed, and email user (TODO)
   async requestPasswordReset(email: string): Promise<void> {
     const user = await this.usersService.findByEmail(email);
-    if (!user) return;
+    if (!user) return; // Don't reveal if user exists
 
     const resetToken = crypto.randomBytes(32).toString('hex');
     const hashedResetToken = await bcrypt.hash(resetToken, 10);
-    const expiry = Date.now() + 3600 * 1000; // 1 hour from now
+    const expiry = Date.now() + 3600 * 1000; // 1 hour
 
     await this.usersService.setPasswordResetToken(
       user.id,
@@ -138,20 +168,29 @@ export class AuthService {
       expiry,
     );
 
-    // TODO: Send `resetToken` via email to the user securely
+    // Send reset link via email
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    await this.mailService.sendMail(
+      user.email,
+      'Password Reset Request',
+      `<p>You requested a password reset.</p>
+             <p>Click <a href="${resetUrl}">here</a> to reset your password.</p>
+             <p>This link will expire in 1 hour.</p>`,
+    );
   }
-
-  // Reset password using the reset token
-  async resetPassword(token: string, newPassword: string): Promise<void> {
-    // Find user(s) by matching hashed reset token
-    const users = await this.usersService.findByResetToken(token);
-    if (!users.length)
-      throw new BadRequestException('Invalid or expired token');
-
-    const user = users[0];
-    const hashedPassword = await bcrypt.hash(newPassword, 12);
-
-    await this.usersService.updatePassword(user.id, hashedPassword);
-    await this.usersService.clearPasswordResetToken(user.id);
-  }
+  // async resetPassword (token: string, newPassword: string): Promise<User | undefined> {
+  //   for (const user of this.users) {
+  //     if (
+  //       user.passwordResetToken &&
+  //       user.passwordResetExpires &&
+  //       user.passwordResetExpires > Date.now()
+  //     ) {
+  //       const isMatch = await bcrypt.compare(token, user.passwordResetToken);
+  //       if (isMatch) {
+  //         return user;
+  //       }
+  //     }
+  //   }
+  //   return undefined;
+  // }
 }

@@ -3,10 +3,11 @@ import { AuthService } from '../services/auth.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../../interfaces/auth.interface';
 import { RegisterDto } from '../dto/register.dto';
+import { VerifyOtpDto } from '../dto/verify-otp.dto';
 import { LoginDto } from '../dto/login.dto';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { RequestPasswordResetDto } from '../dto/request-password-reset.dto';
-import { ResetPasswordDto } from '../dto/reset-password.dto';
+// import { ResetPasswordDto } from '../dto/reset-password.dto ';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -19,12 +20,28 @@ import {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiOperation({ summary: 'User registration' })
-  @ApiResponse({ status: 201, description: 'Registration successful' })
-  @Post('signup')
-  async signup(@Body() dto: RegisterDto): Promise<{ message: string }> {
-    await this.authService.register(dto.email, dto.password);
-    return { message: 'Registration successful. Please verify your email.' };
+  @ApiOperation({ summary: 'Request user registration OTP' })
+  @ApiResponse({
+    status: 200,
+    description: 'OTP sent to email for verification',
+  })
+  @Post('register-request')
+  async registerRequest(
+    @Body() dto: RegisterDto,
+  ): Promise<{ message: string }> {
+    await this.authService.registerRequest(dto.email, dto.password);
+    return {
+      message:
+        'OTP sent to your email. Please verify to complete registration.',
+    };
+  }
+
+  @Post('register-verify')
+  async registerVerify(
+    @Body() dto: VerifyOtpDto,
+  ): Promise<{ message: string }> {
+    await this.authService.verifyOtpAndRegister(dto.email, dto.otp);
+    return { message: 'Registration completed successfully.' };
   }
 
   @ApiOperation({ summary: 'User login' })
@@ -78,13 +95,13 @@ export class AuthController {
     };
   }
 
-  @ApiOperation({ summary: 'Reset password' })
-  @ApiResponse({ status: 200, description: 'Password reset successful' })
-  @Post('reset-password')
-  async resetPassword(
-    @Body() dto: ResetPasswordDto,
-  ): Promise<{ message: string }> {
-    await this.authService.resetPassword(dto.token, dto.newPassword);
-    return { message: 'Password reset successful.' };
-  }
+  // @ApiOperation({ summary: 'Reset password' })
+  // @ApiResponse({ status: 200, description: 'Password reset successful' })
+  // @Post('reset-password')
+  // async resetPassword(
+  //   @Body() dto: ResetPasswordDto,
+  // ): Promise<{ message: string }> {
+  //   await this.authService.resetPassword(dto.token, dto.newPassword);
+  //   return { message: 'Password reset successful.' };
+  // }
 }
