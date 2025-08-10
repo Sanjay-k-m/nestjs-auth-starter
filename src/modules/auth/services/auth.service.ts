@@ -161,7 +161,6 @@ export class AuthService {
     const resetToken = crypto.randomBytes(32).toString('hex');
     const hashedResetToken = await bcrypt.hash(resetToken, 10);
     const expiry = Date.now() + 3600 * 1000; // 1 hour
-
     await this.usersService.setPasswordResetToken(
       user.id,
       hashedResetToken,
@@ -178,19 +177,16 @@ export class AuthService {
              <p>This link will expire in 1 hour.</p>`,
     );
   }
-  // async resetPassword (token: string, newPassword: string): Promise<User | undefined> {
-  //   for (const user of this.users) {
-  //     if (
-  //       user.passwordResetToken &&
-  //       user.passwordResetExpires &&
-  //       user.passwordResetExpires > Date.now()
-  //     ) {
-  //       const isMatch = await bcrypt.compare(token, user.passwordResetToken);
-  //       if (isMatch) {
-  //         return user;
-  //       }
-  //     }
-  //   }
-  //   return undefined;
-  // }
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    // Find user(s) by matching hashed reset token
+    const users = await this.usersService.findByResetToken(token);
+    if (!users.length)
+      throw new BadRequestException('Invalid or expired token');
+
+    const user = users[0];
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    await this.usersService.updatePassword(user.id, hashedPassword);
+    await this.usersService.clearPasswordResetToken(user.id);
+  }
 }

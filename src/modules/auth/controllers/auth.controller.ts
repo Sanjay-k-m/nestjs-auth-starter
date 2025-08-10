@@ -7,7 +7,7 @@ import { VerifyOtpDto } from '../dto/verify-otp.dto';
 import { LoginDto } from '../dto/login.dto';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { RequestPasswordResetDto } from '../dto/request-password-reset.dto';
-// import { ResetPasswordDto } from '../dto/reset-password.dto ';
+import { ResetPasswordDto } from '../dto/reset-password.dto';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -95,13 +95,13 @@ export class AuthController {
     };
   }
 
-  // @ApiOperation({ summary: 'Reset password' })
-  // @ApiResponse({ status: 200, description: 'Password reset successful' })
-  // @Post('reset-password')
-  // async resetPassword(
-  //   @Body() dto: ResetPasswordDto,
-  // ): Promise<{ message: string }> {
-  //   await this.authService.resetPassword(dto.token, dto.newPassword);
-  //   return { message: 'Password reset successful.' };
-  // }
+  @ApiOperation({ summary: 'Reset password' })
+  @ApiResponse({ status: 200, description: 'Password reset successful' })
+  @Post('reset-password')
+  async resetPassword(
+    @Body() dto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
+    await this.authService.resetPassword(dto.token, dto.newPassword);
+    return { message: 'Password reset successful.' };
+  }
 }

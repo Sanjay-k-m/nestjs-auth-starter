@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await */
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { User } from '../../interfaces/user.interface';
@@ -57,13 +58,13 @@ export class UsersService {
     }
   }
 
-  async findByResetToken(token: string): Promise<User[]> {
+  async findByResetToken(hashedToken: string): Promise<User[]> {
     return this.users.filter(
       (user) =>
         user.passwordResetToken &&
         user.passwordResetExpires &&
         user.passwordResetExpires > Date.now() &&
-        user.passwordResetToken === token,
+        bcrypt.compareSync(hashedToken, user.passwordResetToken),
     );
   }
 
