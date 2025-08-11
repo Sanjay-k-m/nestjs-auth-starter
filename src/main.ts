@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { LoggingInterceptor } from './common/interceptor/loging.interceptor';
 
 async function bootstrap() {
   // 1. Create app instance first
@@ -40,6 +41,8 @@ async function bootstrap() {
   } else {
     console.log('Swagger disabled');
   }
+  // Apply logging interceptor globally
+  app.useGlobalInterceptors(new LoggingInterceptor());
 
   // 5. Listen on port
   const port = process.env.PORT || 3000;
