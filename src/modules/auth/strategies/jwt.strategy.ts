@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy, StrategyOptions } from 'passport-jwt';
-import { Logger } from '@nestjs/common';
+import { jwtConfig } from 'src/config';
 
 interface JwtPayload {
   sub: number;
@@ -18,20 +18,14 @@ export interface JwtUser {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
-    const secretCode = process.env.JWT_ACCESS_TOKEN_SECRET;
-    if (!secretCode) {
-      Logger.error(
-        'JWT_ACCESS_TOKEN_SECRET is not defined. Please add this variable to your .env file',
-      );
-      throw new Error(
-        'JWT_ACCESS_TOKEN_SECRET is not defined. Please add this variable to your .env file',
-      );
-    }
+    const {
+      accessToken: { secret, ignoreExpiration },
+    } = jwtConfig();
 
     const options: StrategyOptions = {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: secretCode,
-      ignoreExpiration: false,
+      secretOrKey: secret,
+      ignoreExpiration,
     };
     super(options);
   }

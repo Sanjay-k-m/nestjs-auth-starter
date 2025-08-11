@@ -14,7 +14,8 @@ import { UsersService } from '../../users/users.service';
 import { User } from '../../../interfaces/user.interface';
 import { JwtPayload } from '../../../interfaces/auth.interface';
 import { TempUserStoreService } from 'src/common/services/temp-user-store.service';
-import { MailService } from 'src/common/services/mailProvider.service';
+import { MailService } from 'src/common/services/mail-provider.service';
+import { frontendUrl, jwtConfig } from 'src/config';
 @Injectable()
 export class AuthService {
   users: any;
@@ -111,11 +112,12 @@ export class AuthService {
 
   // Generate refresh token signed with separate secret
   generateRefreshToken(user: Omit<User, 'password'>): string {
+    const { refreshToken } = jwtConfig();
     return this.jwtService.sign(
       { sub: user.id },
       {
-        secret: process.env.JWT_REFRESH_TOKEN_SECRET || 'refreshSecret',
-        expiresIn: '7d',
+        secret: refreshToken.secret,
+        expiresIn: refreshToken.expiresIn,
       },
     );
   }
@@ -169,7 +171,8 @@ export class AuthService {
     );
 
     // Send reset link via email
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    const FRONTEND_URL = frontendUrl();
+    const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
     await this.mailService.sendMail(
       user.email,
       'Password Reset Request',

@@ -1,13 +1,13 @@
 import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
-import { AuthService } from '../services/auth.service';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { AuthenticatedUser } from '../../../interfaces/auth.interface';
-import { RegisterDto } from '../dto/register.dto';
-import { VerifyOtpDto } from '../dto/verify-otp.dto';
-import { LoginDto } from '../dto/login.dto';
-import { RefreshTokenDto } from '../dto/refresh-token.dto';
-import { RequestPasswordResetDto } from '../dto/request-password-reset.dto';
-import { ResetPasswordDto } from '../dto/reset-password.dto';
+import { AuthService } from '../../services/auth.service';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { AuthenticatedUser } from 'src/interfaces/auth.interface';
+import { RegisterDto } from '../../dto/register.dto';
+import { VerifyOtpDto } from '../../dto/verify-otp.dto';
+import { LoginDto } from '../../dto/login.dto';
+import { RefreshTokenDto } from '../../dto/refresh-token.dto';
+import { RequestPasswordResetDto } from '../../dto/request-password-reset.dto';
+import { ResetPasswordDto } from '../../dto/reset-password.dto';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -16,8 +16,11 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('auth')
-@Controller('auth')
-export class AuthController {
+@Controller({
+  path: 'auth',
+  version: '1', // <-- Set version here
+})
+export class AuthControllerV1 {
   constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({ summary: 'Request user registration OTP' })

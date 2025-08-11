@@ -1,53 +1,20 @@
 import { NestFactory } from '@nestjs/core';
-import helmet from 'helmet';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { LoggingInterceptor } from './common/interceptor/loging.interceptor';
+import { appConfig } from './config';
+import { Logger } from '@nestjs/common';
+import { setupApp } from './setup';
+
+const logger = new Logger('Bootstrap');
+const { port } = appConfig();
 
 async function bootstrap() {
-  // 1. Create app instance first
-  const app = await NestFactory.create(AppModule);
-
-  // 2. Enable CORS after app creation
-  const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
-    .split(',')
-    .map((origin) => origin.trim());
-  app.enableCors({
-    origin: corsOrigins,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
+  setupApp(app);
 
-  // 3. Use helmet middleware conditionally
-  if (process.env.ENABLE_HELMET !== 'false') {
-    app.use(helmet());
-    console.log('Helmet enabled');
-  } else {
-    console.log('Helmet disabled');
-  }
-
-  // 4. Setup swagger conditionally
-  if (process.env.ENABLE_SWAGGER === 'true') {
-    const config = new DocumentBuilder()
-      .setTitle('Ecommerce API')
-      .setDescription('API docs for ecommerce backend')
-      .setVersion('1.0')
-      .addBearerAuth()
-      .build();
-
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api-docs', app, document);
-    console.log('Swagger enabled at /api-docs');
-  } else {
-    console.log('Swagger disabled');
-  }
-  // Apply logging interceptor globally
-  app.useGlobalInterceptors(new LoggingInterceptor());
-
-  // 5. Listen on port
-  const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`Server listening on http://localhost:${port}`);
+  logger.log(`🚀 Server listening on http://localhost:${port}`);
 }
 
 bootstrap();

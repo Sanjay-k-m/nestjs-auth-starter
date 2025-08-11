@@ -2,29 +2,24 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import { mailConfig, mailFrom } from 'src/config';
 
 @Injectable()
 export class MailService {
   private transporter;
+  private mailFrom;
 
   constructor() {
+    this.mailFrom = mailFrom();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    this.transporter = nodemailer.createTransport({
-      host: process.env.MAIL_HOST || 'smtp.example.com',
-      port: Number(process.env.MAIL_PORT) || 587,
-      secure: false,
-      auth: {
-        user: process.env.MAIL_USER || 'user@example.com',
-        pass: process.env.MAIL_PASS || 'password',
-      },
-    });
+    this.transporter = nodemailer.createTransport(mailConfig());
   }
 
   async sendMail(to: string, subject: string, html: string): Promise<void> {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       await this.transporter.sendMail({
-        from: `"Your App" <${process.env.MAIL_FROM || 'no-reply@example.com'}>`,
+        from: `"Your App" <${this.mailFrom}>`,
         to,
         subject,
         html,

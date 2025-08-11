@@ -1,13 +1,15 @@
-import { Logger, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AuthService } from './services/auth.service';
-import { AuthController } from './controllers/auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { ServicesModule } from 'src/common/services/services.module';
+import { AuthControllerV1 } from './controllers/v1/auth.controller';
+import { AuthControllerV2 } from './controllers/v2/auth.controller';
+import { jwtConfig } from 'src/config';
 @Module({
   imports: [
     UsersModule,
@@ -15,25 +17,18 @@ import { ServicesModule } from 'src/common/services/services.module';
     ServicesModule,
     JwtModule.registerAsync({
       imports: [ConfigModule], // ensure ConfigModule is imported here
-      useFactory: (configService: ConfigService) => {
-        const logger = new Logger('JwtModule');
-        const secret = configService.get<string>('JWT_ACCESS_TOKEN_SECRET');
-        if (!secret) {
-          logger.error(
-            'JWT_ACCESS_TOKEN_SECRET is not defined. Please add this variable to your .env file',
-          );
-          throw new Error('JWT_ACCESS_TOKEN_SECRET is not defined.');
-        }
-        logger.log('JWT secret loaded successfully');
+      useFactory: () => {
+        const { accessToken } = jwtConfig();
+
         return {
-          secret,
-          signOptions: { expiresIn: '15m' },
+          secret: accessToken.secret,
+          signOptions: { expiresIn: accessToken.expiresIn },
         };
       },
       inject: [ConfigService],
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthControllerV1, AuthControllerV2],
   providers: [AuthService, JwtStrategy],
   exports: [AuthService],
 })
