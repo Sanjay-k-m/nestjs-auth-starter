@@ -1,5 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { CompressionOptions } from 'compression';
 import { Request, Response } from 'express';
+import {
+  CompressionEnvConfig,
+  compressionValidateEnv,
+} from './compression.config.validation';
 
 export interface CompressionConfig extends CompressionOptions {
   threshold?: number;
@@ -9,8 +15,10 @@ export interface CompressionConfig extends CompressionOptions {
   };
 }
 
+const validatedEnv: CompressionEnvConfig = compressionValidateEnv(process.env);
+
 export const compressionConfig = (): CompressionConfig => ({
-  threshold: Number(process.env.COMPRESSION_THRESHOLD) || 1024,
+  threshold: validatedEnv.COMPRESSION_THRESHOLD,
   filter: (req: Request) => {
     if (req.headers['x-no-compression']) {
       return false;
@@ -18,6 +26,6 @@ export const compressionConfig = (): CompressionConfig => ({
     return true;
   },
   zlib: {
-    level: Number(process.env.COMPRESSION_LEVEL) || 6,
+    level: validatedEnv.COMPRESSION_LEVEL,
   },
 });

@@ -1,5 +1,5 @@
-export { throttlerConfig } from './throttler.config';
-export { appConfig, frontendUrl } from './app.config';
+export { throttlerConfig, getThrottlerConfig } from './throttler.config';
+export { appConfig } from './app.config';
 export { mailConfig, mailFrom } from './mail.config';
 export { jwtConfig } from './jwt.config';
 export { corsConfig } from './cors.config';

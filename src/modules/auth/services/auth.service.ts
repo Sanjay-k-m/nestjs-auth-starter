@@ -15,7 +15,7 @@ import { User } from '../../../interfaces/user.interface';
 import { JwtPayload } from '../../../interfaces/auth.interface';
 import { TempUserStoreService } from 'src/common/services/temp-user-store.service';
 import { MailService } from 'src/common/services/mail-provider.service';
-import { frontendUrl, jwtConfig } from 'src/config';
+import { appConfig, jwtConfig } from 'src/config';
 @Injectable()
 export class AuthService {
   users: any;
@@ -171,8 +171,8 @@ export class AuthService {
     );
 
     // Send reset link via email
-    const FRONTEND_URL = frontendUrl();
-    const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
+    const { frontendUrl } = appConfig();
+    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
     await this.mailService.sendMail(
       user.email,
       'Password Reset Request',

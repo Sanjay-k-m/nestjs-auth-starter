@@ -1,8 +1,11 @@
-export const appConfig = () => ({
-  // appName: process.env.APP_NAME || 'MyEcommerceApp',
-  port: process.env.PORT || 3000,
-  //   environment: process.env.NODE_ENV || 'development',
-  //   enableDebugLogs: process.env.DEBUG_LOGS === 'true' || false,
-});
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+// src/config/app.config.ts
+import { EnvConfig, appValidateEnv } from './app.config.validation';
 
-export const frontendUrl = () => process.env.FRONTEND_URL || 'localhost:3000';
+const validatedEnv: EnvConfig = appValidateEnv(process.env);
+
+export const appConfig = () => ({
+  port: validatedEnv.PORT,
+  nodeEnv: validatedEnv.NODE_ENV,
+  frontendUrl: validatedEnv.FRONTEND_URL,
+});

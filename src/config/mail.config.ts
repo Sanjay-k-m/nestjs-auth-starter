@@ -1,11 +1,15 @@
+import { mailValidateEnv, MailEnvConfig } from './mail.config.validation';
+
+const validatedEnv: MailEnvConfig = mailValidateEnv(process.env);
+
 export const mailConfig = () => ({
-  host: process.env.MAIL_HOST || 'smtp.gmail.com',
-  port: Number(process.env.MAIL_PORT) || 587,
-  secure: process.env.MAIL_SECURE === 'true' || false,
+  host: validatedEnv.MAIL_HOST,
+  port: validatedEnv.MAIL_PORT,
+  secure: validatedEnv.MAIL_SECURE,
   auth: {
-    user: process.env.MAIL_USER || '',
-    pass: process.env.MAIL_PASS || '',
+    user: validatedEnv.MAIL_USER,
+    pass: validatedEnv.MAIL_PASS,
   },
 });
 
-export const mailFrom = () => process.env.MAIL_FROM || 'test@gmail.com';
+export const mailFrom = () => validatedEnv.MAIL_FROM;

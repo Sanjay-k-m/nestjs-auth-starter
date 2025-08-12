@@ -1,10 +1,14 @@
-// src/config/cors.config.ts
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+import { corsValidateEnv, CorsEnvConfig } from './cors.config.validation';
+
+const validatedEnv: CorsEnvConfig = corsValidateEnv(process.env);
 
 export const corsConfig = (): CorsOptions => {
-  const origins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
-    .split(',')
-    .map((origin) => origin.trim());
+  const origins = validatedEnv.CORS_ORIGIN.split(',').map((origin) =>
+    origin.trim(),
+  );
 
   return {
     origin: origins,
