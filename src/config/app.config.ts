@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // src/config/app.config.ts
 import { EnvConfig, appValidateEnv } from './app.config.validation';
 

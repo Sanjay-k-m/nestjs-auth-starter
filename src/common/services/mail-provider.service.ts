@@ -11,7 +11,7 @@ export class MailService {
 
   constructor() {
     this.mailFrom = mailFrom();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     this.transporter = nodemailer.createTransport(mailConfig());
   }
 

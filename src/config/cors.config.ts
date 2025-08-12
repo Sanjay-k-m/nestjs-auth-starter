@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { corsValidateEnv, CorsEnvConfig } from './cors.config.validation';
 
