@@ -1,7 +1,7 @@
 // src/setup/setup-logging-interceptor.ts
 import { INestApplication, Logger } from '@nestjs/common';
 import { featuresConfig } from 'src/config';
-import { LoggingInterceptor } from 'src/common/interceptor/loging.interceptor';
+import { LoggingInterceptor } from 'src/common/interceptors/logging.interceptor';
 
 const logger = new Logger('LoggingInterceptor');
 

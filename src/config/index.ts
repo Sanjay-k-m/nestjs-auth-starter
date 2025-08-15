@@ -1,11 +1,19 @@
-export { throttlerConfig, getThrottlerConfig } from './throttler.config';
-export { appConfig } from './app.config';
-export { mailConfig, mailFrom } from './mail.config';
-export { jwtConfig } from './jwt.config';
-export { corsConfig } from './cors.config';
-export { versioningConfig } from './versioning.config';
-export { swaggerConfig } from './swagger.config';
-export { featuresConfig } from './features.config';
-export { compressionConfig } from './compression.config';
+// src/config/index.ts
 
-// export {  } from './database.config';
+// App
+export * from './app/app.config';
+
+// Security
+export * from './security/auth/jwt.config';
+
+// Throttler
+export * from './throttler/throttler.config';
+
+// Third-party / external integrations
+export * from './third-party/compression.config';
+export * from './third-party/cors.config';
+export * from './third-party/database/database.config';
+export * from './third-party/features.config';
+export * from './third-party/mail/mail.config';
+export * from './third-party/api/swagger.config';
+export * from './third-party/versioning.config';

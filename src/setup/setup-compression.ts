@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { INestApplication, Logger } from '@nestjs/common';
 import compression from 'compression';
-import { compressionConfig } from 'src/config/compression.config';
-import { featuresConfig } from 'src/config/features.config';
+import { compressionConfig, featuresConfig } from 'src/config';
 
 const logger = new Logger('Compression');
 
