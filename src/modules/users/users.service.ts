@@ -137,8 +137,13 @@ export class UsersService {
    */
   async updateUser(
     userId: string,
-    data: Prisma.UserUpdateInput, // use Prisma type
+    data: Prisma.UserUpdateInput,
   ): Promise<User> {
+    // Hash password if it exists in update data
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password as string, 10);
+    }
+
     return this.userRepo.update(userId, data);
   }
   /** Clear password reset token and expiry */

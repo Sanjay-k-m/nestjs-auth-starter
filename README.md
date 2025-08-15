@@ -1,99 +1,140 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# DB-Agnostic Auth Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
+[![NestJS Version](https://img.shields.io/badge/NestJS-v10-orange?logo=nestjs)](https://nestjs.com/)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+A **flexible authentication backend** built with **NestJS** that supports multiple database types including **PostgreSQL, MySQL, MongoDB**, and more. This project provides a secure, scalable, and database-agnostic authentication system with Docker support for seamless development and production environments.
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Features
 
-## Project setup
+- **User Registration and Login**: Secure endpoints for user sign-up (with OTP verification) and authentication.
+- **JWT-based Authentication**: Token-based authentication with JSON Web Tokens.
+- **Access and Refresh Tokens**: Supports access tokens for secure API access and refresh tokens for maintaining user sessions.
+- **Password Reset**: Allows users to request and reset passwords securely via email.
+- **User Logout**: Invalidate tokens to securely log out users.
+- **Database-Agnostic**: Compatible with PostgreSQL, MySQL, MongoDB, and other TypeORM-supported databases.
+- **Docker Support**: Pre-configured Docker setup for development, testing, and production.
+- **Easy Setup and Management**: Streamlined scripts for running, testing, and managing the project.
 
-```bash
-$ pnpm install
-```
+---
 
-## Compile and run the project
+## Prerequisites
 
-```bash
-# development
-$ pnpm run start
+- **Node.js**: Version >= 18.0.0
+- **PNPM**: Package manager for installing dependencies
+- **Docker** (optional): For containerized development and deployment
+- **Database**: PostgreSQL, MySQL, MongoDB, or any TypeORM-supported database
 
-# watch mode
-$ pnpm run start:dev
+---
 
-# production mode
-$ pnpm run start:prod
-```
+## Project Setup
 
-## Run tests
+Follow these steps to set up the project locally or with Docker:
 
 ```bash
-# unit tests
-$ pnpm run test
+# Clone the repository
+git clone https://github.com/Sanjay-k-m/nestjs-auth-starter.git
+cd nestjs-auth-starter
 
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+# Install dependencies
+pnpm install
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Environment Variables
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+# Copy the example .env file to create your local .env
+cp .env.example .env
+
+# Edit .env to configure your database and other settings
+# All necessary variables are included in .env.example with sensible defaults
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Running with Docker
+
+```bash
+# Build and start the application with Docker
+docker-compose up --build
+
+# Stop the containers
+docker-compose down
+```
+
+### Running Locally
+
+```bash
+# Start the development server
+pnpm start:dev
+
+```
+
+> **Note**: All commands for running the project—whether locally, with Docker, for migrations, seeding, or tests—are detailed in the `scripts.md` file at the root of the project. Refer to it for additional instructions.
+
+---
+
+## API Documentation
+
+### Swagger UI
+
+Interactive API documentation is available via Swagger UI. After starting the application, access it at:
+
+```
+http://localhost:3000/api-docs
+```
+
+Use Swagger UI to explore and test all available endpoints.
+
+### Postman Collection
+
+A Postman collection is provided for testing the API endpoints. The collection is available in JSON format at the root of the project as **`Nest_Auth_API.postman_collection.json`** Import it into Postman to test the APIs, including registration, login, logout, password reset, and token refresh.
+
+---
 
 ## Resources
 
-Check out a few resources that may come in handy when working with NestJS:
+- **NestJS Documentation**: [https://docs.nestjs.com](https://docs.nestjs.com)
+- **Video Courses**: [https://courses.nestjs.com/](https://courses.nestjs.com/)
+- **NestJS Devtools**: [https://devtools.nestjs.com](https://devtools.nestjs.com)
+- **Community Support**: Join the NestJS Discord community at [https://discord.gg/G7Qnnhy](https://discord.gg/G7Qnnhy)
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
+## Contributing
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Contributions are welcome! Follow these steps to contribute:
 
-## Stay in touch
+```bash
+# 1. Fork the repository
+# 2. Create your feature branch
+git checkout -b feature/your-feature
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+# 3. Commit your changes
+git commit -m "feat: add feature description"
+
+# 4. Push to the branch
+git push origin feature/your-feature
+
+# 5. Open a Pull Request
+```
+
+Please ensure your code follows the project's coding standards and includes tests where applicable.
+
+---
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-# nestjs-auth-starter
+This project is licensed under the MIT License.  
+See the [LICENSE](LICENSE) file for details.
+
+---
+
+## Contact
+
+**Author**: Sanjay Km  
+**GitHub**: [https://github.com/sanjay-k-m](https://github.com/sanjay-k-m)  
+**LinkedIn**: [https://linkedin.com/in/sanjay-k-m](https://linkedin.com/in/sanjay-k-m)
+
+For questions, suggestions, or feedback, feel free to open an issue or reach out via GitHub.

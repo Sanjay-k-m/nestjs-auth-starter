@@ -32,7 +32,6 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOtp = await bcrypt.hash(otp, 10);
-    const hashedPassword = await bcrypt.hash(password, 12);
 
     if (user && user.isEmailVerified) {
       // Fully registered & verified
@@ -44,13 +43,13 @@ export class AuthService {
       await this.usersService.updateUser(user.id, {
         otp: hashedOtp,
         otpExpiry: new Date(Date.now() + 10 * 60 * 1000), // 10 min
-        password: hashedPassword,
+        password,
       });
     } else {
       // New user → create
       await this.usersService.createUser({
         email,
-        password: hashedPassword,
+        password,
         roles: ['user'],
         isEmailVerified: false,
         otp: hashedOtp,
