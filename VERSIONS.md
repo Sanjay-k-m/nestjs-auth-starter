@@ -4,12 +4,18 @@
 
 - **Branch:** `stable/memory-auth-complete`
 - **Tag:** `v1.0.0-memory-auth`
-- **Description:** Complete in-memory authentication backend.
-- **Usage:** Use this branch or tag if you want the backend without database integration.
+- **Description:** Fully functional authentication backend with in-memory user storage (no database).
+- **Usage:** Ideal for quick setups, prototypes, or learning authentication without DB complexity.
 
 ---
 
-## Upcoming Features
+## Database-Agnostic Auth Backend
 
-- Multi-database support (PostgreSQL with Prisma and MongoDB).
-- New feature development will happen on feature branches such as `feature/multi-db-support`.
+- **Branch:** `main`
+- **Tag:** `v2.0.0-db-auth`
+- **Description:** Backend refactored to support multiple database engines through Prisma.
+- **Highlights:**
+  - Works with PostgreSQL, MongoDB, MySQL, and other Prisma-supported databases
+  - Improved logging and monitoring
+  - API documentation with Swagger/OpenAPI
+  - Unit and integration test coverage

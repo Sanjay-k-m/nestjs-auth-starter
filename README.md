@@ -1,38 +1,59 @@
-# DB-Agnostic Auth Backend
+# NestJS Authentication Backend
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
-[![NestJS Version](https://img.shields.io/badge/NestJS-v10-orange?logo=nestjs)](https://nestjs.com/)
+[![NestJS Version](https://img.shields.io/badge/NestJS-v11-orange?logo=nestjs)](https://nestjs.com/)
 
-A **flexible authentication backend** built with **NestJS** that supports multiple database types including **PostgreSQL, MySQL, MongoDB**, and more. This project provides a secure, scalable, and database-agnostic authentication system with Docker support for seamless development and production environments.
+A **secure and flexible authentication backend** built with **NestJS**, designed to handle user authentication for any application. It supports multiple databases like **PostgreSQL, MySQL, MongoDB**, and others using Prisma, making it easy to integrate with your preferred database. With features like rate-limiting, secure headers, and response compression, this project is ready for production and can be customized via environment variables. Docker support simplifies setup and deployment.
+
+---
+
+## Why Use This Project?
+
+This project provides a ready-to-use authentication system with everything you need to manage users securely:
+- Sign up users with email and OTP verification.
+- Log in users and issue secure JWT tokens.
+- Support refresh tokens to keep users logged in.
+- Allow password resets via email.
+- Protect your API with rate-limiting and security features.
+- Use any database (PostgreSQL, MySQL, MongoDB, etc.) without changing the code.
+- Test and explore APIs easily with Swagger or Postman.
+
+Whether you're building a small app or a large-scale system, this backend is designed to be secure, scalable, and easy to customize.
 
 ---
 
 ## Features
 
-- **User Registration and Login**: Secure endpoints for user sign-up (with OTP verification) and authentication.
-- **JWT-based Authentication**: Token-based authentication with JSON Web Tokens.
-- **Access and Refresh Tokens**: Supports access tokens for secure API access and refresh tokens for maintaining user sessions.
-- **Password Reset**: Allows users to request and reset passwords securely via email.
-- **User Logout**: Invalidate tokens to securely log out users.
-- **Database-Agnostic**: Compatible with PostgreSQL, MySQL, MongoDB, and other TypeORM-supported databases.
-- **Docker Support**: Pre-configured Docker setup for development, testing, and production.
-- **Easy Setup and Management**: Streamlined scripts for running, testing, and managing the project.
+- **User Sign-Up and Login**: Register users with email and OTP verification, and log them in securely.
+- **JWT Authentication**: Uses JSON Web Tokens for secure user authentication.
+- **Access and Refresh Tokens**: Provides access tokens for API access and refresh tokens to maintain user sessions.
+- **Password Reset**: Allows users to reset passwords securely via email links.
+- **User Logout**: Invalidates tokens to log users out securely.
+- **Flexible Database Support**: Works with PostgreSQL, MySQL, MongoDB, and more using Prisma ORM.
+- **Rate-Limiting**: Protects APIs from abuse with configurable throttling (enable via `ENABLE_THROTTLE`).
+- **Security**: Adds secure HTTP headers with Helmet (enable via `ENABLE_HELMET`).
+- **Performance**: Compresses API responses for faster performance (enable via `COMPRESSION_ENABLED`).
+- **API Documentation**: Provides interactive Swagger UI for exploring APIs (enable via `ENABLE_SWAGGER`).
+- **Input Validation**: Ensures robust request validation (enable via `ENABLE_GLOBAL_VALIDATION_PIPE`).
+- **Logging**: Logs requests and responses for debugging (enable via `ENABLE_LOGGING_INTERCEPTOR`).
+- **Docker Support**: Easy setup with Docker for development and production.
+- **Customizable**: Toggle features on or off using environment variables.
 
 ---
 
 ## Prerequisites
 
-- **Node.js**: Version >= 18.0.0
+- **Node.js**: Version 18.0.0 or higher
 - **PNPM**: Package manager for installing dependencies
-- **Docker** (optional): For containerized development and deployment
-- **Database**: PostgreSQL, MySQL, MongoDB, or any TypeORM-supported database
+- **Docker** (optional): For running the project in containers
+- **Database**: PostgreSQL, MySQL, MongoDB, or any database supported by Prisma
 
 ---
 
 ## Project Setup
 
-Follow these steps to set up the project locally or with Docker:
+Get started in a few simple steps:
 
 ```bash
 # Clone the repository
@@ -46,11 +67,18 @@ pnpm install
 ### Environment Variables
 
 ```bash
-# Copy the example .env file to create your local .env
+# Copy the example .env file to create your own
 cp .env.example .env
 
-# Edit .env to configure your database and other settings
-# All necessary variables are included in .env.example with sensible defaults
+# Edit .env to set up your database and customize features
+# Example feature flags (set to true/false):
+# ENABLE_HELMET=true
+# ENABLE_SWAGGER=true
+# ENABLE_LOGGING_INTERCEPTOR=true
+# ENABLE_GLOBAL_VALIDATION_PIPE=true
+# COMPRESSION_ENABLED=true
+# ENABLE_THROTTLE=true
+# All necessary variables are included in .env.example with defaults
 ```
 
 ### Running with Docker
@@ -69,9 +97,37 @@ docker-compose down
 # Start the development server
 pnpm start:dev
 
+# Run database migrations (if needed)
+pnpm run migration:run
+
+# Seed the database with sample data (if needed)
+pnpm run seed
 ```
 
-> **Note**: All commands for running the project—whether locally, with Docker, for migrations, seeding, or tests—are detailed in the `scripts.md` file at the root of the project. Refer to it for additional instructions.
+> **Note**: Find all commands for running, testing, or managing the project in the `scripts.md` file at the root of the project.
+
+---
+
+## Key Dependencies
+
+This project uses a powerful set of packages to deliver its features, all configurable via environment variables for maximum flexibility:
+
+- **`@nestjs/core`, `@nestjs/common`, `@nestjs/platform-express`**: Core NestJS packages for building a fast and modular API.
+- **`@nestjs/jwt`, `@nestjs/passport`, `passport`, `passport-jwt`**: Handle secure JWT-based authentication and user sessions.
+- **`@nestjs/config`**: Loads environment variables to configure the app and toggle features.
+- **`@nestjs/swagger`, `swagger-ui-express`**: Generate interactive API docs with Swagger UI (toggle via `ENABLE_SWAGGER`).
+- **`@prisma/client`**: Prisma ORM for easy database connections to PostgreSQL, MySQL, MongoDB, and more.
+- **`bcrypt`**: Secures user passwords with strong hashing.
+- **`nodemailer`**: Sends emails for OTP verification and password resets.
+- **`class-validator`, `class-transformer`**: Validate and process incoming data, with global validation (toggle via `ENABLE_GLOBAL_VALIDATION_PIPE`).
+- **`helmet`**: Adds secure HTTP headers to protect the API (toggle via `ENABLE_HELMET`).
+- **`@nestjs/throttler`**: Limits request rates to prevent abuse (toggle via `ENABLE_THROTTLE`).
+- **`compression`**: Speeds up API responses by compressing data (toggle via `COMPRESSION_ENABLED`).
+- **`uuid`**: Creates unique IDs for users and tokens.
+- **`reflect-metadata`**: Supports NestJS decorators for dependency injection.
+- **`rxjs`**: Handles asynchronous operations efficiently.
+
+For a full list of dependencies, including tools for testing and code quality, check the `package.json` file.
 
 ---
 
@@ -79,17 +135,15 @@ pnpm start:dev
 
 ### Swagger UI
 
-Interactive API documentation is available via Swagger UI. After starting the application, access it at:
+Explore and test APIs interactively with Swagger UI (enable by setting `ENABLE_SWAGGER=true` in `.env`). After starting the application, visit:
 
 ```
 http://localhost:3000/api-docs
 ```
 
-Use Swagger UI to explore and test all available endpoints.
-
 ### Postman Collection
 
-A Postman collection is provided for testing the API endpoints. The collection is available in JSON format at the root of the project as **`Nest_Auth_API.postman_collection.json`** Import it into Postman to test the APIs, including registration, login, logout, password reset, and token refresh.
+Test the APIs with a provided Postman collection, available in JSON format at the root of the project as `Nest_Auth_API.postman_collection.json`. Import it into Postman to try out user registration (with OTP), login, logout, password reset, and token refresh.
 
 ---
 
@@ -104,7 +158,7 @@ A Postman collection is provided for testing the API endpoints. The collection i
 
 ## Contributing
 
-Contributions are welcome! Follow these steps to contribute:
+We welcome contributions! Follow these steps to contribute:
 
 ```bash
 # 1. Fork the repository
@@ -135,6 +189,6 @@ See the [LICENSE](LICENSE) file for details.
 
 **Author**: Sanjay Km  
 **GitHub**: [https://github.com/sanjay-k-m](https://github.com/sanjay-k-m)  
-**LinkedIn**: [https://linkedin.com/in/sanjay-k-m](https://linkedin.com/in/sanjay-k-m)
+**LinkedIn**: [https://linkedin.com/in/sanjay-k-m](https://linkedin.com/in/sanjay-k-m)  
 
 For questions, suggestions, or feedback, feel free to open an issue or reach out via GitHub.
