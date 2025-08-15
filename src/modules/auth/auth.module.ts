@@ -4,12 +4,14 @@ import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AuthService } from './services/auth.service';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtStrategy } from 'src/common/security/strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
-import { ServicesModule } from 'src/common/services/services.module';
-import { AuthControllerV1 } from './controllers/v1/auth.controller';
-import { AuthControllerV2 } from './controllers/v2/auth.controller';
+import { ServicesModule } from 'src/common/providers/providers.module';
 import { jwtConfig } from 'src/config';
+import { UsersService } from '../users/users.service';
+import { PrismaService } from 'src/common/providers/prisma.service';
+import { AuthControllerV1 } from './controllers/v1';
+import { AuthControllerV2 } from './controllers/v2';
 @Module({
   imports: [
     UsersModule,
@@ -29,7 +31,7 @@ import { jwtConfig } from 'src/config';
     }),
   ],
   controllers: [AuthControllerV1, AuthControllerV2],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, UsersService, PrismaService],
   exports: [AuthService],
 })
 export class AuthModule {}

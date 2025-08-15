@@ -1,7 +1,7 @@
 // src/setup/setup-swagger.ts
 import { INestApplication, Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { swaggerConfig } from '../config/swagger.config';
+import { swaggerConfig } from 'src/config';
 
 const logger = new Logger('Swagger');
 

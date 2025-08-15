@@ -1,73 +1,87 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {
   Injectable,
   ConflictException,
   UnauthorizedException,
   BadRequestException,
+  NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
 import { UsersService } from '../../users/users.service';
-import { User } from '../../../interfaces/user.interface';
+import { User } from '@prisma/client';
 import { JwtPayload } from '../../../interfaces/auth.interface';
-import { TempUserStoreService } from 'src/common/services/temp-user-store.service';
-import { MailService } from 'src/common/services/mail-provider.service';
+import { MailService } from 'src/common/providers/mail-provider.service';
 import { appConfig, jwtConfig } from 'src/config';
+
 @Injectable()
 export class AuthService {
-  users: any;
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly tempUserStore: TempUserStoreService,
     private readonly mailService: MailService,
   ) {}
 
-  // Register new user with hashed password
+  /** Register new user with OTP (stored in DB temporarily) */
+  /** Register new user with OTP (supports unverified user updates) */
   async registerRequest(email: string, password: string): Promise<void> {
-    const exists = await this.usersService.findByEmail(email);
-    if (exists) throw new ConflictException('Email already registered');
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+    const user = await this.usersService.findByEmail(email);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOtp = await bcrypt.hash(otp, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Save { email, hashedOtp, password: hashed & other details } in temp store (e.g. Redis or separate DB table)
-    this.tempUserStore.save({
-      email,
-      password: await bcrypt.hash(password, 12),
-      otp: hashedOtp,
-      otpExpiry: Date.now() + 10 * 60 * 1000, // 10 min expiry
-    });
+    if (user && user.isEmailVerified) {
+      // Fully registered & verified
+      throw new ConflictException('Email already registered');
+    }
 
-    // Send OTP to user via email/sms
+    if (user && !user.isEmailVerified) {
+      // User exists but not verified → update OTP & password
+      await this.usersService.updateUser(user.id, {
+        otp: hashedOtp,
+        otpExpiry: new Date(Date.now() + 10 * 60 * 1000), // 10 min
+        password: hashedPassword,
+      });
+    } else {
+      // New user → create
+      await this.usersService.createUser({
+        email,
+        password: hashedPassword,
+        roles: ['user'],
+        isEmailVerified: false,
+        otp: hashedOtp,
+        otpExpiry: new Date(Date.now() + 10 * 60 * 1000),
+      });
+    }
+
+    // Send OTP email
     await this.mailService.sendMail(email, 'OTP for registration', otp);
   }
 
-  // auth.service.ts
+  /** Verify OTP and activate user */
   async verifyOtpAndRegister(email: string, otp: string): Promise<void> {
-    const tempUser = this.tempUserStore.find(email);
-    if (!tempUser) throw new BadRequestException('No pending registration');
+    const user = await this.usersService.findByEmail(email);
+    if (!user) throw new BadRequestException('No pending registration');
 
-    if (tempUser.otpExpiry < Date.now())
+    if (!user.otp || !user.otpExpiry || user.otpExpiry < new Date())
       throw new BadRequestException('OTP expired');
 
-    const isValidOtp = await bcrypt.compare(otp, tempUser.otp);
+    const isValidOtp = await bcrypt.compare(otp, user.otp);
     if (!isValidOtp) throw new BadRequestException('Invalid OTP');
 
-    // Create the user in permanent DB
-    await this.usersService.create({
-      email: tempUser.email,
-      password: tempUser.password,
-      roles: ['user'],
+    // Mark user as verified and remove OTP fields
+    await this.usersService.updateUser(user.id, {
       isEmailVerified: true,
+      otp: null,
+      otpExpiry: null,
     });
-
-    // Remove temp user
-    this.tempUserStore.remove(email);
   }
 
-  // Validate user credentials and return user info without password
+  /** Validate user credentials */
   async validateUser(
     email: string,
     password: string,
@@ -76,20 +90,14 @@ export class AuthService {
     if (!user) return null;
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (isPasswordValid) {
-      // Exclude password from returned user object
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: _, ...result } = user;
-      return result;
-    }
-    return null;
+    if (!isPasswordValid) return null;
+
+    const { password: _, ...result } = user;
+    return result;
   }
 
-  // Login user, generate access and refresh tokens
-  async login(
-    email: string,
-    password: string,
-  ): Promise<{ access_token: string; refresh_token: string }> {
+  /** Login user and return JWT tokens */
+  async login(email: string, password: string) {
     const user = await this.validateUser(email, password);
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
@@ -99,16 +107,19 @@ export class AuthService {
       roles: user.roles,
     };
 
-    const access_token = this.jwtService.sign(payload);
-    console.log('Access token:', access_token);
-    const refresh_token = this.generateRefreshToken(user);
+    const access_token = this.jwtService.sign(payload, {
+      secret: jwtConfig().accessToken.secret,
+      expiresIn: jwtConfig().accessToken.expiresIn,
+    });
 
+    const refresh_token = this.generateRefreshToken(user);
     await this.usersService.setCurrentRefreshToken(user.id, refresh_token);
+    await this.usersService.updateLoginInfo(user.id);
 
     return { access_token, refresh_token };
   }
 
-  // Generate refresh token signed with separate secret
+  /** Generate JWT refresh token */
   generateRefreshToken(user: Omit<User, 'password'>): string {
     const { refreshToken } = jwtConfig();
     return this.jwtService.sign(
@@ -120,16 +131,13 @@ export class AuthService {
     );
   }
 
-  // Logout user by clearing their refresh token
-  async logout(userId: number): Promise<void> {
+  /** Logout user by clearing refresh token */
+  async logout(userId: string): Promise<void> {
     await this.usersService.removeRefreshToken(userId);
   }
 
-  // Refresh access and refresh tokens if refresh token is valid
-  async refreshTokens(
-    userId: number,
-    refreshToken: string,
-  ): Promise<{ access_token: string; refresh_token: string }> {
+  /** Refresh tokens if refresh token is valid */
+  async refreshTokens(userId: string, refreshToken: string) {
     const user = await this.usersService.findById(userId);
     if (!user || !user.currentHashedRefreshToken)
       throw new UnauthorizedException();
@@ -140,55 +148,58 @@ export class AuthService {
     );
     if (!isRefreshTokenValid) throw new UnauthorizedException();
 
-    // Generate new tokens
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
       roles: user.roles,
     };
-    const access_token = this.jwtService.sign(payload);
-    const new_refresh_token = this.generateRefreshToken(user);
 
+    const access_token = this.jwtService.sign(payload, {
+      secret: jwtConfig().accessToken.secret,
+      expiresIn: jwtConfig().accessToken.expiresIn,
+    });
+
+    const new_refresh_token = this.generateRefreshToken(user);
     await this.usersService.setCurrentRefreshToken(user.id, new_refresh_token);
 
     return { access_token, refresh_token: new_refresh_token };
   }
 
-  // Request password reset: generate token, save hashed, and email user (TODO)
+  /** Request password reset */
   async requestPasswordReset(email: string): Promise<void> {
     const user = await this.usersService.findByEmail(email);
-    if (!user) return; // Don't reveal if user exists
+    if (!user) return; // silently ignore
 
     const resetToken = crypto.randomBytes(32).toString('hex');
     const hashedResetToken = await bcrypt.hash(resetToken, 10);
-    const expiry = Date.now() + 3600 * 1000; // 1 hour
+    const expiry = new Date(Date.now() + 3600 * 1000).getTime();
     await this.usersService.setPasswordResetToken(
       user.id,
       hashedResetToken,
       expiry,
     );
-
-    // Send reset link via email
+    console.log('refresh token for user:', user.id, resetToken);
     const { frontendUrl } = appConfig();
     const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
     await this.mailService.sendMail(
       user.email,
       'Password Reset Request',
-      `<p>You requested a password reset.</p>
-             <p>Click <a href="${resetUrl}">here</a> to reset your password.</p>
-             <p>This link will expire in 1 hour.</p>`,
+      `<p>Click <a href="${resetUrl}">here</a> to reset your password.</p>
+       <p>This link will expire in 1 hour.</p>`,
     );
   }
-  async resetPassword(token: string, newPassword: string): Promise<void> {
+
+  /** Reset password using token */
+  async resetPassword(token: string, newPassword: string) {
     // Find user(s) by matching hashed reset token
     const users = await this.usersService.findByResetToken(token);
     if (!users.length)
       throw new BadRequestException('Invalid or expired token');
 
     const user = users[0];
-    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    console.log('Resetting password for user:', user.id);
 
-    await this.usersService.updatePassword(user.id, hashedPassword);
+    await this.usersService.updatePassword(user.id, newPassword);
     await this.usersService.clearPasswordResetToken(user.id);
   }
 }

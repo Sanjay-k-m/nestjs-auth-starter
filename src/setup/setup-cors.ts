@@ -1,6 +1,6 @@
 // src/setup/setup-cors.ts
 import { INestApplication, Logger } from '@nestjs/common';
-import { corsConfig } from '../config/cors.config';
+import { corsConfig } from 'src/config';
 
 const logger = new Logger('CORS');
 
